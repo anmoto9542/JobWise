@@ -32,6 +32,9 @@ public class ResumeServiceImpl implements ResumeService {
     @Value("${resume.upload.path}")
     private String uploadPath;
 
+    @Value("${resume.cache.ttl-minutes}")
+    private long cacheTtlMinutes;
+
     @Override
     public Resume uploadTextResume(Long userId, String title, String content) {
         Resume resume = new Resume();
@@ -81,7 +84,7 @@ public class ResumeServiceImpl implements ResumeService {
                 .collect(Collectors.toMap(r -> r.getId().toString(), r -> r));
 
         redisTemplate.opsForHash().putAll(key, map);
-//        redisTemplate.expire(key, cacheProperties.getTtlMinutes(), TimeUnit.MINUTES);
+        redisTemplate.expire(key, cacheTtlMinutes, TimeUnit.MINUTES);
 
         return resumes;
     }

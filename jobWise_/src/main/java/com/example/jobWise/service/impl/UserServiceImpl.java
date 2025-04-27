@@ -2,6 +2,8 @@ package com.example.jobWise.service.impl;
 
 import com.example.jobWise.dto.response.UserInfoResponse;
 import com.example.jobWise.entity.User;
+import com.example.jobWise.enums.StatusCodeEnum;
+import com.example.jobWise.exception.CustomException;
 import com.example.jobWise.repository.UserRepository;
 import com.example.jobWise.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,9 +15,9 @@ public class UserServiceImpl implements UserService {
     private UserRepository userRepository;
 
     @Override
-    public UserInfoResponse getUserInfo(String username) {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+    public UserInfoResponse getUserInfo(String email) throws CustomException{
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new CustomException(StatusCodeEnum.ERR9903));
 
         UserInfoResponse userInfo = new UserInfoResponse();
         userInfo.setEmail(user.getEmail());
