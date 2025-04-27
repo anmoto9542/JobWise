@@ -30,16 +30,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
             if (jwtProvider.validateToken(token)) {
-                String username = jwtProvider.getUsernameFromToken(token);
+                String userEmail = jwtProvider.getUserEmailFromToken(token);
                 UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(username, null, Collections.emptyList());
+                        new UsernamePasswordAuthenticationToken(userEmail, null, Collections.emptyList());
 
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
 
                 // 每次請求後發新 token
                 String newToken = jwtProvider.refreshToken(token);
-                response.setHeader("AuthToken", newToken); // 自定義 header
+                // 自定義 header
+                response.setHeader("AuthToken", newToken);
+                // 為了後續 BaseController 可以拿到，也順便塞進 Request Attribute
+                request.setAttribute("AuthToken", newToken);
             }
         }
 

@@ -17,20 +17,24 @@ public class JwtTokenProvider {
     /**
      * 產 Token
      *
-     * @param username
+     * @param email
      * @return
      */
-    public String generateToken(String username) {
+    public String generateToken(String email) {
         return Jwts.builder()
-                .setSubject(username)
+                .setSubject(email)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
                 .signWith(SignatureAlgorithm.HS512, jwtSecret)
                 .compact();
     }
 
-    public String getUsernameFromToken(String token) {
-        return Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token).getBody().getSubject();
+    public String getUserEmailFromToken(String token) {
+        return Jwts.parser()
+                .setSigningKey(jwtSecret)
+                .parseClaimsJws(token)
+                .getBody()
+                .getSubject();
     }
 
     /**
@@ -58,7 +62,7 @@ public class JwtTokenProvider {
         if (!validateToken(oldToken)) {
             throw new RuntimeException("Invalid or expired token");
         }
-        String username = getUsernameFromToken(oldToken);
-        return generateToken(username);
+        String userEmail = getUserEmailFromToken(oldToken);
+        return generateToken(userEmail);
     }
 }

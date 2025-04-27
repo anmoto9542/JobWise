@@ -18,7 +18,7 @@ public class ApiResponse<T> {
     public ApiResponse(boolean success, String message, T data, String authToken) {
         this.success = success;
         this.message = message;
-        this.authToken = authToken;
         this.data = data;
+        this.authToken = authToken;
     }
 }
