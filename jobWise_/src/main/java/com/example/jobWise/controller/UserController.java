@@ -5,6 +5,7 @@ import com.example.jobWise.enums.StatusCodeEnum;
 import com.example.jobWise.exception.CustomException;
 import com.example.jobWise.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,8 +17,14 @@ public class UserController extends BaseController {
     @Autowired
     private UserService userService;
 
+    /**
+     * 取得使用者資料
+     *
+     * @param username
+     * @return
+     */
     @GetMapping("/info")
-    public Object getUserInfo(@AuthenticationPrincipal String username) {
+    public ResponseEntity<?> getUserInfo(@AuthenticationPrincipal String username) {
         try {
             UserInfoResponse userInfo = userService.getUserInfo(username);
             return success(userInfo);

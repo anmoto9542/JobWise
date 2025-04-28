@@ -8,6 +8,7 @@ import com.example.jobWise.exception.CustomException;
 import com.example.jobWise.service.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,7 +28,7 @@ public class AuthController extends BaseController {
      * @throws Exception
      */
     @PostMapping("/register")
-    public Object register(@Valid @RequestBody RegisterRequest rq) throws Exception {
+    public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest rq) throws Exception {
         try {
             authService.register(rq);
             return success();
@@ -45,7 +46,7 @@ public class AuthController extends BaseController {
      * @return
      */
     @PostMapping("/login")
-    public Object login(@Valid @RequestBody LoginRequest rq) {
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest rq) {
         try {
             JwtResponse response = authService.login(rq);
             return successLogin(response);

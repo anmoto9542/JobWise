@@ -11,7 +11,9 @@ public enum StatusCodeEnum {
     ERR9999("9999", "請求參數錯誤"),
     ERR9901("9901", "帳戶已存在"),
     ERR9902("9902", "登入資訊錯誤，請重新確認"),
-    ERR9903("9903", "帳戶資訊查詢錯誤");
+    ERR9903("9903", "帳戶資訊查詢錯誤"),
+    ERR9904("9904", "查無履歷資料"),
+    ERR9905("9905", "請提供履歷內容或檔案");
 
     private final String code;
     private final String message;

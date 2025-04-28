@@ -1,6 +1,10 @@
 package com.example.jobWise.service.impl;
 
+import com.example.jobWise.dto.response.ResumeDetailResponse;
+import com.example.jobWise.dto.response.ResumesResponse;
 import com.example.jobWise.entity.Resume;
+import com.example.jobWise.enums.StatusCodeEnum;
+import com.example.jobWise.exception.CustomException;
 import com.example.jobWise.repository.ResumeRepository;
 import com.example.jobWise.service.ResumeService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,11 +14,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -41,7 +43,6 @@ public class ResumeServiceImpl implements ResumeService {
         resume.setUserId(userId);
         resume.setTitle(title);
         resume.setContent(content);
-        resume.setCreatedAt(LocalDateTime.now());
         return resumeRepository.save(resume);
     }
 
@@ -56,7 +57,6 @@ public class ResumeServiceImpl implements ResumeService {
             resume.setUserId(userId);
             resume.setTitle(title);
             resume.setFilePath(filePath.toString());
-            resume.setCreatedAt(LocalDateTime.now());
             return resumeRepository.save(resume);
         } catch (IOException e) {
             throw new RuntimeException("File upload failed", e);
@@ -64,40 +64,72 @@ public class ResumeServiceImpl implements ResumeService {
     }
 
     @Override
-    public Resume getResume(Long resumeId) {
-        return resumeRepository.findById(resumeId).orElseThrow(() -> new RuntimeException("Resume not found"));
-    }
-
-    @Override
-    public List<Resume> getUserResumes(Long userId) {
+    public List<ResumesResponse> getUserResumes(Long userId) {
         String key = getResumeCacheKey(userId);
         Map<Object, Object> cached = redisTemplate.opsForHash().entries(key);
-
+        // Redis有存就直接調用
         if (!cached.isEmpty()) {
             return cached.values().stream()
                     .map(obj -> (Resume) obj)
+                    .map(resume -> new ResumesResponse(resume.getId(), resume.getTitle()))
                     .collect(Collectors.toList());
         }
 
         List<Resume> resumes = resumeRepository.findByUserId(userId);
-        Map<String, Resume> map = resumes.stream()
+        Map<String, Resume> map = resumes
+                .stream()
                 .collect(Collectors.toMap(r -> r.getId().toString(), r -> r));
+
+        List<ResumesResponse> result = resumes.stream()
+                .map(resume -> new ResumesResponse(resume.getId(), resume.getTitle()))
+                .collect(Collectors.toList());
 
         redisTemplate.opsForHash().putAll(key, map);
         redisTemplate.expire(key, cacheTtlMinutes, TimeUnit.MINUTES);
 
-        return resumes;
+        return result;
     }
 
     @Override
-    public void deleteResume(Long resumeId, Long userId) throws AccessDeniedException {
-        Resume resume = getResume(resumeId);
-        if (!resume.getUserId().equals(userId)) {
-            throw new AccessDeniedException("Not allowed");
+    public ResumeDetailResponse getResume(Long userId, Long resumeId) {
+        String key = getResumeCacheKey(userId);
+
+        Resume resume = (Resume) redisTemplate.opsForHash().get(key, resumeId.toString());
+
+        if (resume == null) { // Redis找不到，從DB撈
+            resume = resumeRepository.findById(resumeId)
+                    .orElseThrow(() -> new CustomException(StatusCodeEnum.ERR9904));
+
+            redisTemplate.opsForHash().put(key, resumeId.toString(), resume);
+            redisTemplate.expire(key, cacheTtlMinutes, TimeUnit.MINUTES);
         }
-        resumeRepository.delete(resume);
+
+        return new ResumeDetailResponse(
+                resume.getId(),
+                resume.getTitle(),
+                resume.getContent(),
+                resume.getFilePath()
+        );
     }
 
+
+    @Override
+    public void deleteResume(Long resumeId, Long userId) throws Exception {
+        String key = getResumeCacheKey(userId);
+
+        Resume resume = (Resume) redisTemplate.opsForHash().get(key, resumeId.toString());
+
+        if (resume == null) {
+            resume = resumeRepository.findById(resumeId)
+                    .orElseThrow(() -> new CustomException(StatusCodeEnum.ERR9904));
+        }
+        // 刪DB
+        resumeRepository.deleteById(resumeId);
+        // 刪Redis
+        redisTemplate.opsForHash().delete(key, resumeId.toString());
+    }
+
+    // 組 Redis_key
     private String getResumeCacheKey(Long userId) {
         return "user:" + userId + ":resumes";
     }

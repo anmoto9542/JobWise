@@ -15,11 +15,12 @@ public class UserServiceImpl implements UserService {
     private UserRepository userRepository;
 
     @Override
-    public UserInfoResponse getUserInfo(String email) throws CustomException{
+    public UserInfoResponse getUserInfo(String email) throws CustomException {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new CustomException(StatusCodeEnum.ERR9903));
 
         UserInfoResponse userInfo = new UserInfoResponse();
+        userInfo.setUserId(user.getId());
         userInfo.setEmail(user.getEmail());
         userInfo.setUsername(user.getUsername());
 
