@@ -26,4 +26,4 @@ server:
 
 openai:
   api:
-    key:
+    key: sk-apikey

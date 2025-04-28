@@ -1,0 +1,23 @@
+-- 建立 jobWise 資料庫
+CREATE DATABASE IF NOT EXISTS `jobWise` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- 建立 users 表格
+CREATE TABLE `users` (
+    `id` BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '使用者_Id',
+    `email` VARCHAR(255) NOT NULL UNIQUE COMMENT '信箱',
+    `username` VARCHAR(255) NOT NULL COMMENT '使用者名稱',
+    `password` VARCHAR(255) NOT NULL COMMENT '使用者密碼',
+    `created_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '建立時間',
+    `updated_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '最後更新時間'
+) COMMENT = '使用者帳戶';
+
+-- 建立 resumes 表格
+CREATE TABLE `resumes` (
+    `id` BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '履歷ID',
+    `userId` BIGINT NOT NULL COMMENT '使用者ID',
+    `title` VARCHAR(255) NOT NULL COMMENT '履歷標題',
+    `content` TEXT COMMENT '履歷內容',
+    `filePath` VARCHAR(255) COMMENT '檔案路徑',
+    `created_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '建立時間',
+    `updated_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '最後更新時間'
+) COMMENT = '使用者履歷表';
