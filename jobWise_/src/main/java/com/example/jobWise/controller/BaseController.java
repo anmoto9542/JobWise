@@ -9,7 +9,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 public class BaseController {
 
-    protected ResponseEntity<ApiResponse<Object>> success() {
+    protected <T> ResponseEntity<ApiResponse<T>> success() {
         return ResponseEntity.ok(new ApiResponse<>(true, StatusCodeEnum.SUCCESS.getMessage(), null));
     }
 
@@ -25,7 +25,7 @@ public class BaseController {
                 .body(response);
     }
 
-    protected ResponseEntity<ApiResponse<Object>> failure(String message) {
+    protected <T> ResponseEntity<ApiResponse<T>> failure(String message) {
         String newToken = getNewTokenFromRequest();
         return ResponseEntity.badRequest()
                 .header("AuthToken", newToken != null ? newToken : "")
